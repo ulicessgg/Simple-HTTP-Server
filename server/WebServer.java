@@ -57,7 +57,7 @@ public class WebServer implements AutoCloseable {
             try 
             {
                 Socket clientSocket = serverSocket.accept();
-                // need to implement handlers here
+                threadPool.submit(() -> handleRequest(clientSocket)); // gonna try and use lambda to isolate bugs if any
             }
             catch (IOException e)
             {
@@ -69,7 +69,28 @@ public class WebServer implements AutoCloseable {
     // gonna try and implement using comment logic for parse() in HttpRequestFormat.java WORK IN PROGRESS
     public void handleRequest(Socket clientSocket)
     {
-
+        try(clientSocket; 
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            OutputStream out = clientSocket.getOutputStream())
+            {
+                HttpRequestFormat request = HttpRequestFormat.parse(in); // parse isnt implemented so may need to rewrite or adjust this, if it works then the returned value should be valid
+                                                                         // and any bad requests will essentially be left as null
+                // valid requests will then be handled accordingly 
+                if(request != null)
+                {
+                    // wait till parse is implemented in order to make sure this can be attempted
+                }
+                else    // invalid will result in a 400
+                {
+                    String error = String.format("HTTP/1.1 %d %s\r\n\r\n", 400, "Bad Request");
+                    out.write(error.getBytes());
+                    out.flush();
+                }
+            }
+        catch (IOException e)
+            {
+                System.err.println();
+            }
     }
 
     @Override
