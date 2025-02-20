@@ -53,7 +53,7 @@ public class HttpRequestFormat {
         this.headers = headers;
     }
 
-    // return the http formatted string (idk if this necessary)
+    // return the http formatted string (idk if this necessary) - Itll prob work for debug and tests - Ulices
     @Override
     public String toString() {
         return String.format(

@@ -42,7 +42,7 @@ public class HttpRequestHeaders {
         return headers.get(key);
     } 
 
-    // is there a way to simplify this?
+    // is there a way to simplify this? - Maybe try a map? then you can use gets for appending - Ulices
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

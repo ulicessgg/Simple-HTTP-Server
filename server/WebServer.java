@@ -50,7 +50,8 @@ public class WebServer implements AutoCloseable {
      * After the webserver instance is constructed, this method will be
      * called to begin listening for requestd
      */
-    public void listen() {
+    public void listen() 
+    {
         while (true) 
         {
             // Handle a request
@@ -94,7 +95,9 @@ public class WebServer implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws Exception 
+    {
         this.serverSocket.close();
+        threadPool.shutdown();
     }
 }
