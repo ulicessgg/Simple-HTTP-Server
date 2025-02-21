@@ -8,40 +8,32 @@ public class HttpRequestLine {
     // strictly, HTTP/1.1
     private String version;
 
-    public HttpRequestLine() {}
-
-    public HttpRequestLine(String method, String path, String version) {
+    public HttpRequestLine(String method, String path) {
         this.method = method;
         this.path = path;
-        this.version = version;
+        this.version = "HTTP/1.1";
     }
 
     public String getMethod() {
         return method;
     }
 
-    public void setMethod(String method) {
-        this.method = method;
-    }
-
     public String getPath() {
         return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public String getVersion() {
         return version;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return method + " " + path + " " + version;
+    }
+
+    // test RequestLine class
+    public static void main(String[] args) {
+        HttpRequestLine line = new HttpRequestLine("GET", "/data/test.txt");
+        System.out.println(line);
     }
 }
