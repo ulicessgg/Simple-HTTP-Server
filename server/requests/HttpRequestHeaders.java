@@ -10,24 +10,33 @@ public class HttpRequestHeaders {
     // whatever you need for the headers.
     private final Map<String, String> headers;
 
-    public HttpRequestHeaders() {
+    // made this private to enforce the use of the contstructors
+    private HttpRequestHeaders() {
         this.headers = new LinkedHashMap<>();
     }
 
-    public HttpRequestHeaders(String host, String contentType, long contentLength) {
-        this(); // will instantiate the empty constructor for the headers map
-        addHeader("Host", host);
-        addHeader("Content-Type", contentType);
-        addHeader("Content-Length", String.valueOf(contentLength));
+    public static HttpRequestHeaders createHeader() 
+    {
+        return new HttpRequestHeaders();
     }
 
-    public static HttpRequestHeaders defaultHeaders(String host, String contentType, long contentLength) {
+    public static HttpRequestHeaders createHeader(String host, String contentType, long contentLength) {
         HttpRequestHeaders headers = new HttpRequestHeaders();
         headers.addHeader("Host", host);
         headers.addHeader("Content-Type", contentType);
         headers.addHeader("Content-Length", String.valueOf(contentLength));
         headers.addHeader("Connection", "keep-alive");
         headers.addHeader("User-Agent", "Dummy-Client/0.1");
+        return headers;
+    }
+
+    public static HttpRequestHeaders createHeader(String host, String contentType, long contentLength, String connection, String user) {
+        HttpRequestHeaders headers = new HttpRequestHeaders();
+        headers.addHeader("Host", host);
+        headers.addHeader("Content-Type", contentType);
+        headers.addHeader("Content-Length", String.valueOf(contentLength));
+        headers.addHeader("Connection", connection);
+        headers.addHeader("User-Agent", user);
         return headers;
     }
 
@@ -57,7 +66,10 @@ public class HttpRequestHeaders {
 
     // test RequestHeaders class
     public static void main(String[] args) {
-        HttpRequestHeaders headers = HttpRequestHeaders.defaultHeaders("localhost:9999", "text/html", 100);
-        System.out.println(headers);
+        HttpRequestHeaders emptyHeader = HttpRequestHeaders.createHeader();
+        System.out.println(emptyHeader);
+        
+        HttpRequestHeaders header = HttpRequestHeaders.createHeader("localhost:9999", "text/html", 100);
+        System.out.println(header);
     }
 }
