@@ -3,7 +3,6 @@ package server.requests;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import java.util.Set;
 
 public class HttpRequestHeaders {
@@ -11,7 +10,7 @@ public class HttpRequestHeaders {
     private final Map<String, String> headers;
 
     // made this private to enforce the use of the contstructors
-    private HttpRequestHeaders() {
+    public HttpRequestHeaders() {
         this.headers = new LinkedHashMap<>();
     }
 

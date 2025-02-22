@@ -1,22 +1,15 @@
 package server;
 
-import java.net.ServerSocket;
-import java.net.Socket; // needed for users to receive from server
-import java.IOException;
-
-// I think this should work to create threads
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-// will help with responses and requests
 import java.io.BufferedReader;
+import java.io.IOException; // needed for users to receive from server
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-
-import server.config.MimeTypes; // leave as is 
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import server.config.MimeTypes; // leave as is
 import server.requests.HttpRequestFormat; // links to kenny's files
-import server.requests.HttpRequestHeaders;
-import server.requests.HttpRequestLine;
 
 public class WebServer implements AutoCloseable {
 
@@ -38,7 +31,7 @@ public class WebServer implements AutoCloseable {
         }
     }
 
-    public WebServer(int port, String documentRoot, MimeTypes mimeTypes) 
+    public WebServer(int port, String documentRoot, MimeTypes mimeTypes) throws IOException
     {
         this.serverSocket = new ServerSocket(port); // allows user port number to be used
         this.threadPool = Executors.newFixedThreadPool(4); // for now gonna leave it as 4
@@ -48,7 +41,7 @@ public class WebServer implements AutoCloseable {
 
     /**
      * After the webserver instance is constructed, this method will be
-     * called to begin listening for requestd
+     * called to begin listening for request
      */
     public void listen() 
     {

@@ -2,8 +2,6 @@ package server.requests;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.regex.Matcher; // help parsing 
-import java.util.regex.Pattern;
 
 public class HttpRequestFormat {
     private HttpRequestLine requestLine;
@@ -27,7 +25,7 @@ public class HttpRequestFormat {
         this.body = (body != null)? body : "";
     }
 
-    // TODO: must parse format. this is for when we want the server to read the info
+    // this is for when we want the server to read the info
     public static HttpRequestFormat parse(BufferedReader reader) throws IOException 
     {
         try 
@@ -127,7 +125,7 @@ public class HttpRequestFormat {
     // dummy test to see HttpRequestFormat works. See HttpRequestFileReader.java for a dynamic example
     public static void main(String[] args) {
         HttpRequestLine requestLine = new HttpRequestLine("GET", "/data/test.txt");
-        HttpRequestHeaders headers = HttpRequestHeaders.defaultHeaders("localhost:9999", "text/html", 100);
+        HttpRequestHeaders headers = HttpRequestHeaders.createHeader("localhost:9999", "text/html", 100);
         String body = "I am a piece of text.\r\n\r\nIf you see this, this means it worked.";
         HttpRequestFormat request = new HttpRequestFormat(requestLine, headers, body);
         System.out.println(request);
