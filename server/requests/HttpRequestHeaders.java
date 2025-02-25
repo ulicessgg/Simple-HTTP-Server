@@ -9,7 +9,6 @@ public class HttpRequestHeaders {
     // whatever you need for the headers.
     private final Map<String, String> headers;
 
-    // made this private to enforce the use of the contstructors
     public HttpRequestHeaders() {
         this.headers = new LinkedHashMap<>();
     }
