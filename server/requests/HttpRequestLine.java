@@ -1,17 +1,13 @@
 package server.requests;
 
 public class HttpRequestLine {
-    // GET /some/thing/to/send.pdf HTTP/1.1\r\n
     private String method; 
-    // your path here
     private String path; 
-    // strictly, HTTP/1.1
-    private String version;
+    private static final String VERSION = "HTTP/1.1";
 
     public HttpRequestLine(String method, String path) {
         this.method = method;
         this.path = path;
-        this.version = "HTTP/1.1";
     }
 
     public String getMethod() {
@@ -23,17 +19,17 @@ public class HttpRequestLine {
     }
 
     public String getVersion() {
-        return version;
+        return VERSION;
     }
 
     @Override
     public String toString() {
-        return method + " " + path + " " + version;
+        return method + " " + path + " " + VERSION;
     }
 
     // test RequestLine class
     public static void main(String[] args) {
         HttpRequestLine line = new HttpRequestLine("GET", "/data/test.txt");
-        System.out.println(line);
+        System.out.println(line.toString());
     }
 }

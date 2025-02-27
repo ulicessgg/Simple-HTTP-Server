@@ -31,10 +31,11 @@ public class WebServer implements AutoCloseable {
 
     public WebServer(int port, String documentRoot, MimeTypes mimeTypes) throws IOException
     {
-        this.serverSocket = new ServerSocket(port); // allows user port number to be used
+        this.serverSocket = new ServerSocket(port); // allows any port number, have tested
         this.threadPool = Executors.newFixedThreadPool(4); // for now gonna leave it as 4
-        this.documentRoot = documentRoot;
-        this.mimeTypes = mimeTypes;
+        this.documentRoot = documentRoot;   // gives warning but is used for handler
+        this.mimeTypes = mimeTypes;   // gives warning but is used for handler
+        this.handler = new RequestHandler(documentRoot, mimeTypes); // overlooked this was missing
     }
 
     /**
@@ -49,11 +50,12 @@ public class WebServer implements AutoCloseable {
             try 
             {
                 Socket clientSocket = serverSocket.accept();
-                threadPool.submit(() -> handler.handleRequest(clientSocket)); // gonna try and use lambda to isolate bugs if any
+                // this works now but with hard coded responses still figuring out for dynamic
+                threadPool.submit(() -> handler.handleRequest(clientSocket));
             }
             catch (IOException e)
             {
-                System.err.println();
+                System.err.println();   // need to figure out what to say in print
             }
         }
     }

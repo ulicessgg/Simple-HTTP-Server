@@ -12,6 +12,7 @@ import server.exceptions.ReadExceptions;
 
 public class HttpRequestFileReader extends HttpReader {
     private final Path path;
+    // TODO: have these be dynamic values. 
     private static final String METHOD = "GET";
     private static final String ROOT = "/data/";
 
@@ -29,21 +30,22 @@ public class HttpRequestFileReader extends HttpReader {
             String mimeType = readCheck.checkExtension(file);
 
             // 2. initialize request format
+            // TODO: again, these addRequestHeader methods should be dynamic
             HttpRequestLine requestLine = new HttpRequestLine(METHOD, ROOT + file.getName());
             HttpRequestHeaders headers = new HttpRequestHeaders();
-            headers.addHeader("Host", "localhost:9999");
-            headers.addHeader("Content-Type", mimeType);
-            headers.addHeader("Content-Length", String.valueOf(file.length()));
-            headers.addHeader("Connection", "keep-alive");
-            headers.addHeader("User-Agent", "Dummy-Client/0.1");
+            headers.addRequestHeader("Host", "localhost:9999");
+            headers.addRequestHeader("Content-Type", mimeType);
+            headers.addRequestHeader("Content-Length", String.valueOf(file.length()));
+            headers.addRequestHeader("Connection", "keep-alive");
+            headers.addRequestHeader("User-Agent", "Dummy-Client/0.1");
 
             String body = (mimeType.startsWith("text/"))? 
                 Files.readString(file.toPath()) : "";
 
             // 3. set request format
             super.getRequest().setRequestLine(requestLine);
-            super.getRequest().setHeaders(headers);
-            super.getRequest().setBody(body);
+            super.getRequest().setRequestHeaders(headers);
+            super.getRequest().setRequestBody(body);
         }
         catch (Exception e) {
             e.printStackTrace();

@@ -9,7 +9,6 @@ public class HttpRequestHeaders {
     // whatever you need for the headers.
     private final Map<String, String> headers;
 
-    // made this private to enforce the use of the contstructors
     public HttpRequestHeaders() {
         this.headers = new LinkedHashMap<>();
     }
@@ -21,33 +20,33 @@ public class HttpRequestHeaders {
 
     public static HttpRequestHeaders createHeader(String host, String contentType, long contentLength) {
         HttpRequestHeaders headers = new HttpRequestHeaders();
-        headers.addHeader("Host", host);
-        headers.addHeader("Content-Type", contentType);
-        headers.addHeader("Content-Length", String.valueOf(contentLength));
-        headers.addHeader("Connection", "keep-alive");
-        headers.addHeader("User-Agent", "Dummy-Client/0.1");
+        headers.addRequestHeader("Host", host);
+        headers.addRequestHeader("Content-Type", contentType);
+        headers.addRequestHeader("Content-Length", String.valueOf(contentLength));
+        headers.addRequestHeader("Connection", "keep-alive");
+        headers.addRequestHeader("User-Agent", "Dummy-Client/0.1");
         return headers;
     }
 
     public static HttpRequestHeaders createHeader(String host, String contentType, long contentLength, String connection, String user) {
         HttpRequestHeaders headers = new HttpRequestHeaders();
-        headers.addHeader("Host", host);
-        headers.addHeader("Content-Type", contentType);
-        headers.addHeader("Content-Length", String.valueOf(contentLength));
-        headers.addHeader("Connection", connection);
-        headers.addHeader("User-Agent", user);
+        headers.addRequestHeader("Host", host);
+        headers.addRequestHeader("Content-Type", contentType);
+        headers.addRequestHeader("Content-Length", String.valueOf(contentLength));
+        headers.addRequestHeader("Connection", connection);
+        headers.addRequestHeader("User-Agent", user);
         return headers;
     }
 
-    public Set<Entry<String, String>> getHeaders() {
+    public Set<Entry<String, String>> getRequestHeaders() {
         return headers.entrySet();
     }
 
-    public void addHeader(String key, String value) {
+    public void addRequestHeader(String key, String value) {
         if (key != null && value != null) headers.put(key, value);
     }
 
-    public String getHeader(String key) {
+    public String getRequestHeader(String key) {
         return headers.get(key);
     } 
 
