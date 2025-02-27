@@ -21,7 +21,6 @@ public class HttpMethodRouteHandler {
     }
 
     public HttpResponseFormat handleRequest(HttpRequestFormat request, File file) throws IOException {
-        // TODO: each handle is spaghetti code, but these work. fix this after testing.
         switch (httpMethod) {
             case GET -> {
                 return GetHandle.handle(request, file);

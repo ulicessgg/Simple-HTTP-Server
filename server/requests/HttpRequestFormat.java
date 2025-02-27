@@ -11,7 +11,6 @@ public class HttpRequestFormat {
     // what you send to the server if document is specified (can be optional)
     private String body;
 
-    // TODO: should be dymamic for first argument
     public HttpRequestFormat() {
         this(new HttpRequestLine("GET", "/"), new HttpRequestHeaders(), "");
     }

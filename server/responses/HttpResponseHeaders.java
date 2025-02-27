@@ -8,7 +8,6 @@ import java.util.Set;
 import server.handlers.handlersConfig.HandleUtils;
 import server.handlers.handlersConfig.HttpMethod;
 
-// TODO: how to make this more dynamic with the headers. should have the server get the info, and report back to append.
 public class HttpResponseHeaders {
     private final Map<String, String> headers;
 

@@ -11,17 +11,21 @@ import java.nio.file.Paths;
 
 import server.config.MimeTypes;
 import server.requests.HttpRequestFormat;
+import server.auth.Authenticator;
 
 public class RequestHandler 
 {
     private String documentRoot;
     private MimeTypes mimeTypes;
+    private Authenticator authenticator;    // only used for accessing secret files
 
     // added constructor as handler essentially had no info to work off of besides the socket port
     public RequestHandler(String documentRoot, MimeTypes mimeTypes)
     {
         this.documentRoot = documentRoot;
         this.mimeTypes = mimeTypes;
+        String passwordLoc = Paths.get(documentRoot, "secret", ".password").toString();
+        this.authenticator = new Authenticator(passwordLoc);
     }
     
     // works now if hard coding responses, left out to implement dynamic
@@ -43,31 +47,29 @@ public class RequestHandler
 
                 if (Files.exists(path) && !Files.isDirectory(path)) // check if it even exists
                 {
-                    // leaving this out for now since not all requests require data output
-                    // byte[] data = Files.readAllBytes(path);
+                    byte[] data = Files.readAllBytes(path);
 
                     // implemented helper below and using mimehelper gets us the file type
                     String extension = getExtension(file);
-                    String fileType = mimeTypes.getMimeTypeFromExtension(extension);
+                    String contentType = mimeTypes.getMimeTypeFromExtension(extension);
 
-                    String response = ""; // leaving blank need to figure out dynamic responses
+                    //response called/created here
 
-                    out.write(response.getBytes());
-                    // leaving this out for now since not all requests require data output
-                    // out.write(data);
+                    //out.write(response.getBytes());
+                    out.write(data);
                     out.flush();
                 } 
                 else    
                 {
-                    String error = ""; // leaving blank need to figure out dynamic responses
-                    out.write(error.getBytes());
+                    //response called/created here
+                    //out.write(error.getBytes());
                     out.flush();
                 }
             }
             else    // invalid will result in a 400
             {
-                String error = ""; // leaving blank need to figure out dynamic responses
-                out.write(error.getBytes());
+                //response called/created here
+                //out.write(error.getBytes());
                 out.flush();
             }
         }
