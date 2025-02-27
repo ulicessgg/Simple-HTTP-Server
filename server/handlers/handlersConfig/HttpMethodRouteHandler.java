@@ -2,11 +2,7 @@ package server.handlers.handlersConfig;
 
 import java.io.File;
 import java.io.IOException;
-
-import server.handlers.DeleteHandle;
-import server.handlers.GetHandle;
-import server.handlers.HeadHandle;
-import server.handlers.PutHandle;
+import server.handlers.RequestHandler;
 import server.requests.HttpRequestFormat;
 import server.responses.HttpResponseFormat;
 import server.responses.HttpResponseHeaders;
@@ -15,27 +11,29 @@ import server.responses.ResponseCode;
 
 public class HttpMethodRouteHandler {
     private final HttpMethod httpMethod;
+    private final RequestHandler handler;
 
-    public HttpMethodRouteHandler(HttpMethod httpMethod) {
+    public HttpMethodRouteHandler(HttpMethod httpMethod, RequestHandler handler) {
         this.httpMethod = httpMethod;
+        this.handler = handler;
     }
 
     public HttpResponseFormat handleRequest(HttpRequestFormat request, File file) throws IOException {
         switch (httpMethod) {
             case GET -> {
-                return GetHandle.handle(request, file);
+                return handler.handleGet(request, file);
             }
 
             case PUT -> {
-                return PutHandle.handle(request, file);
+                return handler.handlePut(request, file);
             }
 
             case HEAD -> {
-                return HeadHandle.handle(request, file);
+                return handler.handleHead(request, file);
             }
 
             case DELETE -> {
-                return DeleteHandle.handle(request, file);
+                return handler.handleDelete(request, file);
             }
 
             default -> {
