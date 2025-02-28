@@ -32,10 +32,10 @@ public class WebServer implements AutoCloseable {
     public WebServer(int port, String documentRoot, MimeTypes mimeTypes) throws IOException
     {
         this.serverSocket = new ServerSocket(port); // allows any port number, have tested
-        this.threadPool = Executors.newFixedThreadPool(4); // for now gonna leave it as 4
+        this.threadPool = Executors.newFixedThreadPool(10); // for now gonna leave it as 4
         this.documentRoot = documentRoot;   // gives warning but is used for handler
         this.mimeTypes = mimeTypes;   // gives warning but is used for handler
-        this.handler = new RequestHandler(documentRoot, mimeTypes); // overlooked this was missing
+        this.handler = new RequestHandler(documentRoot); // overlooked this was missing
     }
 
     /**

@@ -8,8 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
 import server.auth.Authenticator;
 import server.config.MimeTypes;
 import server.exceptions.ReadExceptions;
@@ -25,14 +25,12 @@ import server.responses.ResponseHeader;
 public class RequestHandler 
 {
     private String documentRoot;
-    private MimeTypes mimeTypes;
     private Authenticator authenticator;    // only used for accessing secret files
 
     // added constructor as handler essentially had no info to work off of besides the socket port
-    public RequestHandler(String documentRoot, MimeTypes mimeTypes)
+    public RequestHandler(String documentRoot)
     {
         this.documentRoot = documentRoot;
-        this.mimeTypes = mimeTypes;
         String passwordLoc = Paths.get(documentRoot, "secret", ".password").toString();
         this.authenticator = new Authenticator(passwordLoc);
     }
@@ -55,33 +53,25 @@ public class RequestHandler
                 switch(request.getRequestLine().getMethod())
                 {
                     case "GET":
-                        handleGet(request, requestedFile);
+                        handleGet(request, requestedFile, out);
                         break;
                     case "HEAD":
-                        handleHead(request, requestedFile);
+                        handleHead(request, requestedFile, out);
                         break;
                     case "PUT":
-                        handlePut(request, requestedFile);
+                        handlePut(request, requestedFile, out);
                         break;
                     case "DELETE":
-                        handleDelete(request, requestedFile);
+                        handleDelete(request, requestedFile, out);
                         break;
                     default:
-                        HttpResponseLine responseLine = new HttpResponseLine(request.getRequestLine(), ResponseCode.BAD_REQUEST);
-                        HttpResponseHeaders responseHeaders = new HttpResponseHeaders();
-                        HttpResponseFormat response = new HttpResponseFormat(responseLine, responseHeaders, null);
-                        out.write(response.toString().getBytes());
-                        out.flush();
+                        handleBad(request, out); 
                         break;
                 }
             }
             else    // invalid will result in a 400
             {
-                HttpResponseLine responseLine = new HttpResponseLine(null, ResponseCode.BAD_REQUEST);
-                HttpResponseHeaders responseHeaders = new HttpResponseHeaders();
-                HttpResponseFormat response = new HttpResponseFormat(responseLine, responseHeaders, null);
-                out.write(response.toString().getBytes());
-                out.flush();
+                handleBad(null, out); 
             }
         }
         catch (IOException e)
@@ -92,24 +82,7 @@ public class RequestHandler
 
     // Dedicated Request Handlers
 
-    private void setGetBodyHandle(File file, String fileType) throws IOException 
-    {
-        String body = null;
-        byte[] binaryContent = null;
-        long contentLength = 0;
-        
-        if (fileType.startsWith("text/")) {
-            body = Files.readString(file.toPath());
-            contentLength = body.length();
-        }
-        else {
-            binaryContent = Files.readAllBytes(file.toPath());
-            contentLength = binaryContent.length;
-            body = Base64.getEncoder().encodeToString(binaryContent);
-        }
-    }
-
-    public HttpResponseFormat handleGet(HttpRequestFormat request, File file) throws IOException 
+    public HttpResponseFormat handleGet(HttpRequestFormat request, File file, OutputStream out) throws IOException 
     {
         String body = null;
         long contentLength = 0;
@@ -117,34 +90,50 @@ public class RequestHandler
         try {
             ReadExceptions readExceptions = new ReadExceptions();
             readExceptions.checkFile(file);
+
             String fileType = readExceptions.checkExtension(file);
 
-            setGetBodyHandle(file, fileType);
+            if (fileType.startsWith("text/")) {
+                body = Files.readString(file.toPath());
+                contentLength = body.length();
 
-            HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
+                HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
                     .buildResponseHeaders(HttpMethod.GET, fileType, contentLength, file);
 
-            if (!fileType.equals("text/")) {
-                headers.addResponseHeader(ResponseHeader.CONTENT_TRANSFER_ENCODING, "binary");
+                HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.OK);
+                HttpResponseFormat response = new HttpResponseFormat(line, headers, body);
+
+                out.write(response.toString().getBytes());
+                out.flush();
+                return response;
+            } else {
+                byte[] content = Files.readAllBytes(file.toPath());
+                contentLength = content.length;
+                HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
+                    .buildResponseHeaders(HttpMethod.GET, fileType, contentLength, file);
+
+                HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.OK);
+                HttpResponseFormat response = new HttpResponseFormat(line, headers, null);
+
+                out.write(response.toString().getBytes());
+                out.write(content); // this is where i suspect the issue with images is
+                out.flush();
+                return response;
             }
-
-            headers.addResponseHeader(ResponseHeader.LOCATION, "https://developer.mozilla.org/");
-            headers.addResponseHeader(ResponseHeader.TRANSFER_ENCODING, "chunked");
-
-            HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.OK);
-            return new HttpResponseFormat(line, headers, body);
         }
         catch (Exception e) {
             HttpResponseHeaders errorHeaders = HttpResponseHeaders.createResponseHeaders()
-                .buildResponseHeaders(HttpMethod.GET,"text/plain", 0, null);
+                    .buildResponseHeaders(HttpMethod.GET, "text/plain", 0, null);
 
             HttpResponseLine errorLine = new HttpResponseLine(request.getRequestLine(), ResponseCode.NOT_FOUND);
-                
-            return new HttpResponseFormat(errorLine, errorHeaders, null);
+            HttpResponseFormat response = new HttpResponseFormat(errorLine, errorHeaders, null);
+            out.write(response.toString().getBytes());
+            out.flush();
+            return response;
         }
     }
 
-    public HttpResponseFormat handleHead(HttpRequestFormat request, File file) throws IOException 
+    public HttpResponseFormat handleHead(HttpRequestFormat request, File file, OutputStream out) throws IOException 
     {
         long SIZE_THRESHOLD = 5 * 1024 * 1024;
         try {
@@ -163,20 +152,24 @@ public class RequestHandler
             headers.addResponseHeader(ResponseHeader.TRANSFER_ENCODING, "chunked");
 
             HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.OK);
-
-            return new HttpResponseFormat(line, headers, null);            
+            HttpResponseFormat response = new HttpResponseFormat(line, headers, null);
+            out.write(response.toString().getBytes());
+            out.flush();
+            return response;           
         }
         catch (Exception e) {
             HttpResponseHeaders errorHeaders = HttpResponseHeaders.createResponseHeaders()
-                .buildResponseHeaders(HttpMethod.HEAD,"text/plain", 0, null);
+                    .buildResponseHeaders(HttpMethod.HEAD, "text/plain", 0, null);
 
             HttpResponseLine errorLine = new HttpResponseLine(request.getRequestLine(), ResponseCode.NOT_FOUND);
-                
-            return new HttpResponseFormat(errorLine, errorHeaders, null);
+            HttpResponseFormat response = new HttpResponseFormat(errorLine, errorHeaders, null);
+            out.write(response.toString().getBytes());
+            out.flush();
+            return response;
         }
     }
 
-    public HttpResponseFormat handlePut(HttpRequestFormat request, File file) throws IOException 
+    public HttpResponseFormat handlePut(HttpRequestFormat request, File file, OutputStream out) throws IOException 
     {
         try {
             File dataDir = new File("data");
@@ -199,19 +192,24 @@ public class RequestHandler
             headers.addResponseHeader(ResponseHeader.EXPIRES, HandleUtils.getExpirationDate());
 
             HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.CREATED);
-            return new HttpResponseFormat(line, headers, body);
+            HttpResponseFormat response = new HttpResponseFormat(line, headers, body);
+            out.write(response.toString().getBytes());
+            out.flush();
+            return response;
         }
         catch (Exception e) {
             HttpResponseHeaders errorHeaders = HttpResponseHeaders.createResponseHeaders()
-                .buildResponseHeaders(HttpMethod.PUT,"text/plain", 0, null);
+                    .buildResponseHeaders(HttpMethod.PUT, "text/plain", 0, null);
 
             HttpResponseLine errorLine = new HttpResponseLine(request.getRequestLine(), ResponseCode.INTERNAL_SERVER_ERROR);
-                
-            return new HttpResponseFormat(errorLine, errorHeaders, "File cannot be created");
+            HttpResponseFormat response = new HttpResponseFormat(errorLine, errorHeaders, "File cannot be created");
+            out.write(response.toString().getBytes());
+            out.flush();
+            return response;
         }
     }
 
-    public HttpResponseFormat handleDelete(HttpRequestFormat request, File file) throws IOException {
+    public HttpResponseFormat handleDelete(HttpRequestFormat request, File file, OutputStream out) throws IOException {
         try {
             // part 1: check if the data directory exists
             File dataDir = new File("data");
@@ -220,9 +218,12 @@ public class RequestHandler
             File targetFile = new File(dataDir, file.getName());
             if (!targetFile.exists()) {
                 HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
-                    .buildResponseHeaders(HttpMethod.DELETE, "text/plain", 0, null);
+                        .buildResponseHeaders(HttpMethod.DELETE, "text/plain", 0, null);
                 HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.NOT_FOUND);
-                return new HttpResponseFormat(line, headers, null);
+                HttpResponseFormat response = new HttpResponseFormat(line, headers, null);
+                out.write(response.toString().getBytes());
+                out.flush();
+                return response;
             }
 
             long contentLength = targetFile.length();
@@ -244,15 +245,30 @@ public class RequestHandler
             headers.addResponseHeader(ResponseHeader.TRANSFER_ENCODING, "chunked");
 
             HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.NO_CONTENT);
-            return new HttpResponseFormat(line, headers, body);
+            HttpResponseFormat response = new HttpResponseFormat(line, headers, body);
+            out.write(response.toString().getBytes());
+            out.flush();
+            return response;
         }
         catch (Exception e) {
             HttpResponseHeaders errorHeaders = HttpResponseHeaders.createResponseHeaders()
-                .buildResponseHeaders(HttpMethod.PUT,"text/plain", 0, null);
+                    .buildResponseHeaders(HttpMethod.PUT, "text/plain", 0, null);
 
             HttpResponseLine errorLine = new HttpResponseLine(request.getRequestLine(), ResponseCode.INTERNAL_SERVER_ERROR);
-                
-            return new HttpResponseFormat(errorLine, errorHeaders, "File cannot be deleted");
+            HttpResponseFormat response = new HttpResponseFormat(errorLine, errorHeaders, "File cannot be deleted");
+            out.write(response.toString().getBytes());
+            out.flush();
+            return response;
         }
+    }
+
+    public void handleBad(HttpRequestFormat request, OutputStream out) throws IOException 
+    {
+        HttpResponseLine responseLine = new HttpResponseLine((request != null) ? request.getRequestLine() : null, ResponseCode.BAD_REQUEST);
+        HttpResponseHeaders responseHeaders = new HttpResponseHeaders();
+        HttpResponseFormat response = new HttpResponseFormat(responseLine, responseHeaders, null);
+
+        out.write(response.toString().getBytes());
+        out.flush();
     }
 }

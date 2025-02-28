@@ -56,31 +56,6 @@ public class HttpResponseHeaders {
         return this;
     }
 
-    // public static HttpResponseHeaders generateResponseHeaders(String method, String contentType, long contentLength, String location) {
-    //     HttpResponseHeaders headers = new HttpResponseHeaders();
-
-    //     switch(method) {
-    //         case "GET", "HEAD" -> {
-    //             headers.addResponseHeader(ResponseHeader.CONTENT_TYPE.getHeaderName(), contentType);
-    //             headers.addResponseHeader(ResponseHeader.CONTENT_LENGTH.getHeaderName(), String.valueOf(contentLength));
-    //             headers.addResponseHeader(ResponseHeader.CONNECTION.getHeaderName(), "keep-alive");
-    //         }
-    //         case "POST", "PUT" -> {
-    //             headers.addResponseHeader(ResponseHeader.CONTENT_TYPE.getHeaderName(), contentType);
-    //             headers.addResponseHeader(ResponseHeader.CONTENT_LENGTH.getHeaderName(), String.valueOf(contentLength));
-    //             if (location != null) {
-    //                 headers.addResponseHeader(ResponseHeader.LOCATION.getHeaderName(), location);
-    //             }
-    //         }
-    //         case "DELETE" -> {
-    //             headers.addResponseHeader(ResponseHeader.CONTENT_TYPE.getHeaderName(), contentType);
-    //             headers.addResponseHeader(ResponseHeader.CONTENT_LENGTH.getHeaderName(), String.valueOf(contentLength));
-    //         }
-    //     }
-
-    //     return headers;
-    // }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -93,9 +68,4 @@ public class HttpResponseHeaders {
 
         return sb.toString().trim();
     }
-
-    // public static void main(String[] args) {
-    //     HttpResponseHeaders headers = HttpResponseHeaders.generateResponseHeaders("DELETE", "text/html", 1234, null);
-    //     System.out.println(headers.toString());
-    // }
 }
