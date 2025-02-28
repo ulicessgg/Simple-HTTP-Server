@@ -2,10 +2,8 @@ package server.auth;
 
 public class Authenticator 
 {
-    private String passwordLoc;
 
-    public Authenticator(String passwordLoc)
+    public Authenticator()
     {
-        this.passwordLoc = passwordLoc;
     }
 }

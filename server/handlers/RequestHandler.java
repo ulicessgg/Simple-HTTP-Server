@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import server.auth.Authenticator;
 import server.config.MimeTypes;
 import server.exceptions.ReadExceptions;
 import server.handlers.handlersConfig.HandleUtils;
@@ -25,17 +24,13 @@ import server.responses.ResponseHeader;
 public class RequestHandler 
 {
     private String documentRoot;
-    private Authenticator authenticator;    // only used for accessing secret files
 
     // added constructor as handler essentially had no info to work off of besides the socket port
     public RequestHandler(String documentRoot)
     {
         this.documentRoot = documentRoot;
-        String passwordLoc = Paths.get(documentRoot, "secret", ".password").toString();
-        this.authenticator = new Authenticator(passwordLoc);
     }
     
-    // works now if hard coding responses, left out to implement dynamic
     public void handleRequest(Socket clientSocket)
     {
         try(clientSocket; 
@@ -76,7 +71,7 @@ public class RequestHandler
         }
         catch (IOException e)
         {
-            System.err.println();   // need to figure out what to say in print
+            System.err.println("");   // need to figure out what to say in print
         }
     }
 
@@ -172,12 +167,27 @@ public class RequestHandler
     public HttpResponseFormat handlePut(HttpRequestFormat request, File file, OutputStream out) throws IOException 
     {
         try {
-            File dataDir = new File("data");
-            if (!dataDir.exists()) {
-                dataDir.mkdir();
+            String filePath = file.getPath();
+            String targetDir = "";
+            
+            Path pathToRoot = Paths.get(documentRoot);
+            Path pathToFile = Paths.get(filePath);
+
+            if (pathToFile.startsWith(pathToRoot)) {
+                Path relativePath = pathToRoot.relativize(pathToFile);
+                if (relativePath.getNameCount() > 1) {
+                    targetDir = relativePath.getParent().toString();
+                }
             }
 
-            File targetFile = new File(dataDir, file.getName());
+            File putDir = new File(documentRoot, targetDir);
+
+            if (!putDir.exists()) {
+                putDir.mkdirs();
+            }
+
+            File targetFile = new File(putDir, file.getName());
+
             String body = request.getRequestBody();
 
             byte[] contentBytes = (body != null)? body.getBytes() : new byte[0];
@@ -211,8 +221,25 @@ public class RequestHandler
 
     public HttpResponseFormat handleDelete(HttpRequestFormat request, File file, OutputStream out) throws IOException {
         try {
-            // part 1: check if the data directory exists
-            File dataDir = new File("data");
+            // part 1: find path to file to be deleted 
+            String filePath = file.getPath();
+            String targetDir = "";
+
+            if (filePath.contains("/")) {
+                targetDir = filePath.substring(0, filePath.lastIndexOf("/"));
+            }
+
+            Path documentRootPath = Paths.get(documentRoot);
+            Path filePathPath = Paths.get(filePath);
+
+            if (filePathPath.startsWith(documentRootPath)) {
+                Path relativePath = documentRootPath.relativize(filePathPath);
+                if (relativePath.getNameCount() > 1) {
+                    targetDir = relativePath.getParent().toString();
+                }
+            }
+        
+            File dataDir = new File(documentRoot, targetDir);
 
             // part 2: check if the file requested to be deleted exists. return 404 if not found
             File targetFile = new File(dataDir, file.getName());
@@ -262,11 +289,14 @@ public class RequestHandler
         }
     }
 
-    public void handleBad(HttpRequestFormat request, OutputStream out) throws IOException 
-    {
+    public void handleBad(HttpRequestFormat request, OutputStream out) throws IOException {
         HttpResponseLine responseLine = new HttpResponseLine((request != null) ? request.getRequestLine() : null, ResponseCode.BAD_REQUEST);
-        HttpResponseHeaders responseHeaders = new HttpResponseHeaders();
+        HttpResponseHeaders responseHeaders = HttpResponseHeaders.createResponseHeaders()
+                .buildResponseHeaders(HttpMethod.GET, "text/plain", 0, null);
         HttpResponseFormat response = new HttpResponseFormat(responseLine, responseHeaders, null);
+
+        String responseString = response.toString();
+        System.out.println("400 Bad Request: " + responseString);
 
         out.write(response.toString().getBytes());
         out.flush();

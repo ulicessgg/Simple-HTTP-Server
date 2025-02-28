@@ -36,7 +36,7 @@ public class HttpResponseFormat {
         return responseLine.toString() + "\r\n" +
                 responseHeaders.toString() + "\r\n" +
                 "\r\n" +
-                ((body.isEmpty())? "" : body);
+                body;
     }
 
     public static void main(String[] args) {
