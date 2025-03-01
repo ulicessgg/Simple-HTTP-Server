@@ -12,8 +12,8 @@ public class WebServer implements AutoCloseable {
 
     private ServerSocket serverSocket; // leave as is
     private ExecutorService threadPool;
-    private String documentRoot;
-    private MimeTypes mimeTypes;
+    private String documentRoot; // ignore the warning its passed to the handler
+    private MimeTypes mimeTypes; // ignore this too 
     private RequestHandler handler;
 
     public static void main(String[] args) throws NumberFormatException, Exception {
@@ -32,10 +32,10 @@ public class WebServer implements AutoCloseable {
     public WebServer(int port, String documentRoot, MimeTypes mimeTypes) throws IOException
     {
         this.serverSocket = new ServerSocket(port); // allows any port number, have tested
-        this.threadPool = Executors.newFixedThreadPool(10); // for now gonna leave it as 4
-        this.documentRoot = documentRoot;   // gives warning but is used for handler
-        this.mimeTypes = mimeTypes;   // gives warning but is used for handler
-        this.handler = new RequestHandler(documentRoot); // overlooked this was missing
+        this.threadPool = Executors.newFixedThreadPool(10); // for now gonna leave it as 10
+        this.documentRoot = documentRoot;   
+        this.mimeTypes = mimeTypes;  
+        this.handler = new RequestHandler(documentRoot); 
     }
 
     /**
@@ -50,12 +50,11 @@ public class WebServer implements AutoCloseable {
             try 
             {
                 Socket clientSocket = serverSocket.accept();
-                // this works now but with hard coded responses still figuring out for dynamic
                 threadPool.submit(() -> handler.handleRequest(clientSocket));
             }
             catch (IOException e)
             {
-                System.err.println();   // need to figure out what to say in print
+                System.err.println("Listen didnt pass request to handler");  
             }
         }
     }

@@ -15,6 +15,7 @@ import server.exceptions.ReadExceptions;
 import server.handlers.handlersConfig.HandleUtils;
 import server.handlers.handlersConfig.HttpMethod;
 import server.requests.HttpRequestFormat;
+import server.requests.HttpRequestLine;
 import server.responses.HttpResponseFormat;
 import server.responses.HttpResponseHeaders;
 import server.responses.HttpResponseLine;
@@ -66,12 +67,12 @@ public class RequestHandler
             }
             else    // invalid will result in a 400
             {
-                handleBad(null, out); 
+                handleBad(request, out); 
             }
         }
         catch (IOException e)
         {
-            System.err.println("");   // need to figure out what to say in print
+            System.err.println("handleRequest failed to execute");
         }
     }
 
@@ -274,14 +275,14 @@ public class RequestHandler
     }
 
     public void handleBad(HttpRequestFormat request, OutputStream out) throws IOException {
-        HttpResponseLine responseLine = new HttpResponseLine((request != null) ? request.getRequestLine() : null, ResponseCode.BAD_REQUEST);
+        HttpRequestLine requestLine = new HttpRequestLine("ERROR", "/400");
+        HttpResponseLine responseLine = new HttpResponseLine(requestLine, ResponseCode.BAD_REQUEST);
         HttpResponseHeaders responseHeaders = HttpResponseHeaders.createResponseHeaders()
-                .buildResponseHeaders(HttpMethod.GET, "text/plain", 0, null);
+                .addResponseHeader(ResponseHeader.CONTENT_TYPE, "text/plain")
+                .addResponseHeader(ResponseHeader.CONTENT_LENGTH, "")
+                .addResponseHeader(ResponseHeader.CONNECTION, "close");
+
         HttpResponseFormat response = new HttpResponseFormat(responseLine, responseHeaders, null);
-
-        String responseString = response.toString();
-        System.out.println("400 Bad Request: " + responseString);
-
         out.write(response.toString().getBytes());
         out.flush();
     }
