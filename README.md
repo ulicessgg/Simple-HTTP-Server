@@ -9,19 +9,19 @@
 
 ## Notes
 
-- What was completed?
-  # Get Requests work completely
-  # 200 Responses work
-  # 404 Responses work
-  # Head Requests work completely
-  # 200 Responses work
-  # 404 Responses work
-  # Put Requests work completely
-  # 201 Responses work
-  # 500 Responses worked when debugging (files were not being created in supplied directory)
-  # Delete Requests work completely
-  # 204 Responses work
-  # 500 Responses worked when debugging (same issue as put, file could not be found but gave response)
-  # 404 Responses work
-- What was not completed? <---
-  # Simple Authentication
+## - What was completed?
+  ### Get Requests work completely
+  ### 200 Responses work
+  ### 404 Responses work
+  ### Head Requests work completely
+  ### 200 Responses work
+  ### 404 Responses work
+  ### Put Requests work completely
+  ### 201 Responses work
+  ### 500 Responses worked when debugging (files were not being created in supplied directory)
+  ### Delete Requests work completely
+  ### 204 Responses work
+  ### 500 Responses worked when debugging (same issue as put, file could not be found but gave response)
+  ### 404 Responses work
+## - What was not completed? <---
+  ### Simple Authentication
