@@ -10,6 +10,8 @@
 ## Notes
 
 ## - What was completed?
+  ## Bad Requests work compeltely
+  ## 400 Responses work
   ### Get Requests work completely
   ### 200 Responses work
   ### 404 Responses work
