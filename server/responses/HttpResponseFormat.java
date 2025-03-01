@@ -1,5 +1,6 @@
 package server.responses;
 
+import server.auth.Authenticator;
 import server.requests.HttpRequestLine;
 
 public class HttpResponseFormat {
@@ -29,6 +30,10 @@ public class HttpResponseFormat {
 
     public void setResponseBody(String body) {
         this.body = body;
+    }
+
+    public static HttpResponseFormat toAuth(Authenticator auth, String authHeader) {
+        return auth.handleAuth(authHeader);
     }
 
     @Override

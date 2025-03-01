@@ -10,6 +10,9 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import server.auth.AuthUtils;
+import server.auth.Authenticator;
 import server.config.MimeTypes;
 import server.exceptions.ReadExceptions;
 import server.handlers.handlersConfig.HandleUtils;
@@ -82,6 +85,20 @@ public class RequestHandler
         long contentLength = 0;
 
         try {
+            // First, check if GET handler requests authentication. Output the response if they have one.
+            if (AuthUtils.requiresAuth(file.getName())) {
+                Authenticator auth = new Authenticator();
+                String authHeader = request.getRequestHeaders().getRequestHeader("Authorization");
+                HttpResponseFormat authResponse = HttpResponseFormat.toAuth(auth, authHeader);
+
+                if (authResponse != null) {
+                    out.write(authResponse.toString().getBytes());
+                    out.flush();
+                    return authResponse;
+                }
+            }
+
+            // Standard GET request and response for all unrestrictive access to other files.
             ReadExceptions readExceptions = new ReadExceptions();
             readExceptions.checkFile(file);
 
@@ -114,7 +131,7 @@ public class RequestHandler
 
     public HttpResponseFormat handleHead(HttpRequestFormat request, File file, OutputStream out) throws IOException 
     {
-        long SIZE_THRESHOLD = 5 * 1024 * 1024;
+        long SIZE_THRESHOLD = 5 * 1024 * 1024; // Restrict size of HEAD request to be 5MB.
         try {
             ReadExceptions readExceptions = new ReadExceptions();
             readExceptions.checkFile(file);
