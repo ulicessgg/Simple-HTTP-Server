@@ -79,7 +79,6 @@ public class RequestHandler
 
     public HttpResponseFormat handleGet(HttpRequestFormat request, File file, OutputStream out) throws IOException 
     {
-        String body = null;
         long contentLength = 0;
 
         try {
@@ -88,33 +87,18 @@ public class RequestHandler
 
             String fileType = readExceptions.checkExtension(file);
 
-            if (fileType.startsWith("text/")) {
-                body = Files.readString(file.toPath());
-                contentLength = body.length();
+            byte[] content = Files.readAllBytes(file.toPath());
+            contentLength = content.length;
+            HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
+                 .buildResponseHeaders(HttpMethod.GET, fileType, contentLength, file);
 
-                HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
-                    .buildResponseHeaders(HttpMethod.GET, fileType, contentLength, file);
+            HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.OK);
+            HttpResponseFormat response = new HttpResponseFormat(line, headers, null);
 
-                HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.OK);
-                HttpResponseFormat response = new HttpResponseFormat(line, headers, body);
-
-                out.write(response.toString().getBytes());
-                out.flush();
-                return response;
-            } else {
-                byte[] content = Files.readAllBytes(file.toPath());
-                contentLength = content.length;
-                HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
-                    .buildResponseHeaders(HttpMethod.GET, fileType, contentLength, file);
-
-                HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.OK);
-                HttpResponseFormat response = new HttpResponseFormat(line, headers, null);
-
-                out.write(response.toString().getBytes());
-                out.write(content); // this is where i suspect the issue with images is
-                out.flush();
-                return response;
-            }
+            out.write(response.toString().getBytes());
+            out.write(content);
+            out.flush();
+            return response;
         }
         catch (Exception e) {
             HttpResponseHeaders errorHeaders = HttpResponseHeaders.createResponseHeaders()
