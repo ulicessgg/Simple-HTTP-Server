@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 import server.handlers.handlersConfig.HttpMethod;
 import server.requests.HttpRequestLine;
 import server.responses.HttpResponseFormat;
@@ -18,13 +18,14 @@ import server.responses.ResponseHeader;
 public class Authenticator {
     private Map<String, String> credentials;
     private static final String REALM = "667 Server";
+    private String documentRoot;
 
-    public Authenticator() {
+    public Authenticator(String documentRoot) {
         this.credentials = new HashMap<>();
-        AuthUtils.loadPasswordFile(credentials);
+        this.documentRoot = documentRoot;
     }
 
-    private boolean isAuth(String authHeader) {
+    public boolean isAuth(String authHeader, File passwordFile) {
         if (authHeader == null || !authHeader.startsWith("Basic ")) {
             return false;
         }
@@ -40,20 +41,29 @@ public class Authenticator {
             String username = parts[0];
             String password = parts[1];
 
-            return (this.credentials.containsKey(username) &&
-                    this.credentials.get(username).equals(password));
+            List<String> lines = Files.readAllLines(passwordFile.toPath());
+
+            for(String line: lines)
+            {
+                String[] credentials = line.split(":");
+                if(credentials.length == 2 && credentials[0].trim().equals(username) && credentials[1].trim().equals(password))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         catch (Exception e) {
             return false;
         }
     }
 
-    private String getWWWAuthHeader() {
+    public String getWWWAuthHeader() {
         return String.format("Basic realm=\"%s\"", REALM);
     }
 
-    public HttpResponseFormat handleAuth(String authHeader) {
-        HttpRequestLine requestLine = new HttpRequestLine("GET", "/a-secret/files.password");
+    public HttpResponseFormat handleAuth(String authHeader, File passwordFile) {
+        HttpRequestLine requestLine = new HttpRequestLine("GET", passwordFile.getPath());
 
         HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
             .buildResponseHeaders(HttpMethod.GET, "text/plain", 0, null);
@@ -67,14 +77,14 @@ public class Authenticator {
         }
 
         // You cannot access this resource, even with correct username:password
-        if (!isAuth(authHeader)) {
+        if (!isAuth(authHeader, passwordFile)) {
             HttpResponseLine line = new HttpResponseLine(requestLine, ResponseCode.FORBIDDEN);
             String authBody = "Access denied";
             return new HttpResponseFormat(line, headers, authBody);
         }
 
         try {
-            String content = Files.readString(new File("a-secret/files.password").toPath());
+            String content = Files.readString(passwordFile.toPath());
             headers.addResponseHeader(ResponseHeader.CONTENT_LENGTH, String.valueOf(content.length()));
             HttpResponseLine line = new HttpResponseLine(requestLine, ResponseCode.OK);
             return new HttpResponseFormat(line, headers, content);

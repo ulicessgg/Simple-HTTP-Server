@@ -27,3 +27,4 @@
   ### 404 Responses work
 ## - What was not completed? <---
   ### Simple Authentication
+  #### Authenticatin Implemented but doesnt work, 200 Response given for all Requests

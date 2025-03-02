@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import server.auth.AuthUtils;
 import server.auth.Authenticator;
 import server.config.MimeTypes;
@@ -28,11 +27,15 @@ import server.responses.ResponseHeader;
 public class RequestHandler 
 {
     private String documentRoot;
+    private Authenticator authenticator;
+    private AuthUtils utils;
 
     // added constructor as handler essentially had no info to work off of besides the socket port
     public RequestHandler(String documentRoot)
     {
         this.documentRoot = documentRoot;
+        this.authenticator = new Authenticator(documentRoot);
+        this.utils = new AuthUtils(documentRoot);
     }
     
     public void handleRequest(Socket clientSocket)
@@ -87,12 +90,22 @@ public class RequestHandler
 
         try {
             // First, check if GET handler requests authentication. Output the response if they have one.
-            if (AuthUtils.requiresAuth(file.getName())) {
-                Authenticator auth = new Authenticator();
+            if (utils.requiresAuth(file.getName())) {
                 String authHeader = request.getRequestHeaders().getRequestHeader("Authorization");
-                HttpResponseFormat authResponse = HttpResponseFormat.toAuth(auth, authHeader);
+                
+                if (authHeader == null) {
+                    HttpResponseHeaders headers = HttpResponseHeaders.createResponseHeaders()
+                        .addResponseHeader(ResponseHeader.WWW_AUTHENTICATE, authenticator.getWWWAuthHeader());
+                    HttpResponseLine line = new HttpResponseLine(request.getRequestLine(), ResponseCode.UNAUTHORIZED);
+                    HttpResponseFormat response = new HttpResponseFormat(line, headers, "Authentication required");
+                    out.write(response.toString().getBytes());
+                    out.flush();
+                    return response;
+                }
 
-                if (authResponse != null) {
+                HttpResponseFormat authResponse = authenticator.handleAuth(authHeader, file);
+                if(authResponse != null)
+                {
                     out.write(authResponse.toString().getBytes());
                     out.flush();
                     return authResponse;

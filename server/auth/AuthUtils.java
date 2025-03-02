@@ -7,9 +7,16 @@ import java.util.List;
 import java.util.Map;
 
 public class AuthUtils {
-    public static void loadPasswordFile(Map<String, String> cred) {
+    private String documentRoot;
+
+    public AuthUtils(String documentRoot)
+    {
+        this.documentRoot = documentRoot;
+    }
+
+    public void loadPasswordFile(Map<String, String> cred, String passwordsPath) {
         try {
-            File passFile = new File("a-secret/files.password");
+            File passFile = new File(passwordsPath);
             if (passFile.exists()) {
                 List<String> lines = Files.readAllLines(passFile.toPath());
                 for (String line : lines) {
@@ -25,15 +32,21 @@ public class AuthUtils {
         }
     }
 
-    public static boolean requiresAuth(String path) {
-        return (path != null) && (path.endsWith(".password"));
-    }
-
-    public String getPassword(File passwordFile) throws Exception {
-        if (!passwordFile.exists() || !passwordFile.getName().endsWith(".password")) {
-            throw new Exception("Password file not found");
+    public boolean requiresAuth(String path) {
+        if (path == null || documentRoot == null) {
+            return false;
         }
 
-        return Files.readString(passwordFile.toPath());
+        File requestedFile = new File(documentRoot, path);
+        File parentDir = requestedFile.getParentFile();
+
+        if (parentDir == null) {
+            return false;
+        }
+
+        String passwordFileName = requestedFile.getName() + ".password";
+        File passwordFile = new File(parentDir, passwordFileName);
+
+        return passwordFile.exists();
     }
 }

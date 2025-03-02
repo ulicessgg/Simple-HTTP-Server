@@ -1,5 +1,7 @@
 package server.responses;
 
+import java.io.File;
+
 import server.auth.Authenticator;
 import server.requests.HttpRequestLine;
 
@@ -32,8 +34,8 @@ public class HttpResponseFormat {
         this.body = body;
     }
 
-    public static HttpResponseFormat toAuth(Authenticator auth, String authHeader) {
-        return auth.handleAuth(authHeader);
+    public static HttpResponseFormat toAuth(Authenticator auth, String authHeader, File passwordFile) {
+        return auth.handleAuth(authHeader, passwordFile);
     }
 
     @Override
