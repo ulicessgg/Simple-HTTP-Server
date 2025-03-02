@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import server.handlers.handlersConfig.HttpMethod;
 import server.requests.HttpRequestLine;
 import server.responses.HttpResponseFormat;
@@ -16,15 +14,8 @@ import server.responses.ResponseCode;
 import server.responses.ResponseHeader;
 
 public class Authenticator {
-    private Map<String, String> credentials;
     private static final String REALM = "667 Server";
-    private String documentRoot;
-
-    public Authenticator(String documentRoot) {
-        this.credentials = new HashMap<>();
-        this.documentRoot = documentRoot;
-    }
-
+    
     public boolean isAuth(String authHeader, File passwordFile) {
         if (authHeader == null || !authHeader.startsWith("Basic ")) {
             return false;

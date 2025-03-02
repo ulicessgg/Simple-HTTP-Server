@@ -44,7 +44,7 @@ public class AuthUtils {
             return false;
         }
 
-        String passwordFileName = requestedFile.getName() + ".password";
+        String passwordFileName = requestedFile.getName() + ".passwords";
         File passwordFile = new File(parentDir, passwordFileName);
 
         return passwordFile.exists();

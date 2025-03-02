@@ -34,7 +34,6 @@ public class RequestHandler
     public RequestHandler(String documentRoot)
     {
         this.documentRoot = documentRoot;
-        this.authenticator = new Authenticator(documentRoot);
         this.utils = new AuthUtils(documentRoot);
     }
     

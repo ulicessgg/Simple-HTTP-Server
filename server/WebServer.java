@@ -12,7 +12,9 @@ public class WebServer implements AutoCloseable {
 
     private ServerSocket serverSocket; // leave as is
     private ExecutorService threadPool;
+    @SuppressWarnings("unused")
     private String documentRoot; // ignore the warning its passed to the handler
+    @SuppressWarnings("unused")
     private MimeTypes mimeTypes; // ignore this too 
     private RequestHandler handler;
 
