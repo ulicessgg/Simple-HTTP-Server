@@ -1,12 +1,22 @@
 package server;
 
+import java.io.IOException; // needed for users to receive from server
 import java.net.ServerSocket;
-
-import server.config.MimeTypes;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import server.config.MimeTypes; // leave as is
+import server.handlers.RequestHandler;
 
 public class WebServer implements AutoCloseable {
 
-    private ServerSocket serverSocket;
+    private ServerSocket serverSocket; // leave as is
+    private ExecutorService threadPool;
+    @SuppressWarnings("unused")
+    private String documentRoot; // ignore the warning its passed to the handler
+    @SuppressWarnings("unused")
+    private MimeTypes mimeTypes; // ignore this too 
+    private RequestHandler handler;
 
     public static void main(String[] args) throws NumberFormatException, Exception {
         if (args.length != 2) {
@@ -21,24 +31,40 @@ public class WebServer implements AutoCloseable {
         }
     }
 
-    public WebServer(int port, String documentRoot, MimeTypes mimeTypes) {
-
+    public WebServer(int port, String documentRoot, MimeTypes mimeTypes) throws IOException
+    {
+        this.serverSocket = new ServerSocket(port); // allows any port number, have tested
+        this.threadPool = Executors.newFixedThreadPool(10); // for now gonna leave it as 10
+        this.documentRoot = documentRoot;   
+        this.mimeTypes = mimeTypes;  
+        this.handler = new RequestHandler(documentRoot); 
     }
 
     /**
      * After the webserver instance is constructed, this method will be
-     * called to begin listening for requestd
+     * called to begin listening for request
      */
-    public void listen() {
-
-        // Feel free to change this logic
-        while (true) {
+    public void listen() 
+    {
+        while (true) 
+        {
             // Handle a request
+            try 
+            {
+                Socket clientSocket = serverSocket.accept();
+                threadPool.submit(() -> handler.handleRequest(clientSocket));
+            }
+            catch (IOException e)
+            {
+                System.err.println("Listen didnt pass request to handler");  
+            }
         }
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws Exception 
+    {
         this.serverSocket.close();
+        threadPool.shutdown();
     }
 }

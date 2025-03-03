@@ -9,6 +9,7 @@
 
 ## Notes
 
+<<<<<<< HEAD
 - What was completed?
   
 - What was not completed?
@@ -35,3 +36,24 @@
 -   #### If a .password file exists in the directory that the server finds the requested file, and if an Authorization header is present, the server must check that the .password file contains the username and password provided in the header and:
 -   #### If the .passwords file does not contain the username and password, the server must respond with a valid HTTP forbidden response. (403)
 -   #### If the .passwords file contains the username and password, the server must respond as it would normally.
+=======
+## - What was completed?
+  ## Bad Requests work compeltely
+  ## 400 Responses work
+  ### Get Requests work completely
+  ### 200 Responses work
+  ### 404 Responses work
+  ### Head Requests work completely
+  ### 200 Responses work
+  ### 404 Responses work
+  ### Put Requests work completely
+  ### 201 Responses work
+  ### 500 Responses worked when debugging (files were not being created in supplied directory)
+  ### Delete Requests work completely
+  ### 204 Responses work
+  ### 500 Responses worked when debugging (same issue as put, file could not be found but gave response)
+  ### 404 Responses work
+## - What was not completed? <---
+  ### Simple Authentication
+  #### Authenticatin Implemented but doesnt work, 200 Response given for all Requests
+>>>>>>> feature
